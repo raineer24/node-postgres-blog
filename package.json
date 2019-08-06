@@ -1,0 +1,25 @@
+{
+  "name": "postgres",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "create": "node ./server/models/database createTables",
+    "dev": "nodemon ./bin/www",
+    "start": "node app.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "cookie-parser": "^1.4.4",
+    "express": "^4.17.1",
+    "express-fileupload": "^1.1.5",
+    "make-runnable": "^1.3.6",
+    "morgan": "^1.9.1",
+    "pg": "^7.12.0"
+  },
+  "devDependencies": {
+    "nodemon": "^1.19.1"
+  }
+}
