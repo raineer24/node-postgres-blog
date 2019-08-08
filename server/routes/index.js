@@ -24,26 +24,26 @@ router.get("/api/v1/blogs", (req, res, next) => {
   const results = [];
   // Get a Postgres client from the connection pool
   pg.connect(connectionString, (err, client, done) => {
-    console.log("err=", err);
+    //console.log("err=", err);
     const query = "SELECT * FROM blogs";
     client.query(query, (error, result) => {
       done();
-      // if (error) {
-      //   res.status(500).json({ error });
-      // }
-      // if (result.rows < "1") {
-      //   res.status(404).send({
-      //     status: "Failed",
-      //     message: "No blog information found"
-      //   });
-      // } else {
-      //   res.status(200).send({
-      //     status: "Successful",
-      //     message: "Blog information retrieved",
-      //     blogs: result.rows
-      //   });
-      // }
-      res.send({ result });
+      if (error) {
+        res.status(500).json({ error });
+      }
+      if (result.rows < "1") {
+        res.status(404).send({
+          status: "Failed",
+          message: "No blog information found"
+        });
+      } else {
+        res.status(200).send({
+          status: "Successful",
+          message: "Blog information retrieved",
+          blogs: result.rows
+        });
+      }
+      //res.send({ result });
     });
   });
 });
