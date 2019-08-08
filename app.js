@@ -50,11 +50,6 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Add route code Here
-app.get("/", (req, res) => {
-  res.send("Welcome to Our SCHOOL API");
-});
-
 app.listen(port, () => {
   console.log(`Server running on port: ${port}`);
 });
