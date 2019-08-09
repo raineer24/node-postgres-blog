@@ -1,4 +1,5 @@
 const express = require("express");
+const fileUpload = require("express-fileupload");
 const router = express.Router();
 const pg = require("pg");
 const path = require("path");
@@ -44,6 +45,87 @@ router.get("/api/v1/blogs", (req, res, next) => {
         });
       }
       //res.send({ result });
+    });
+  });
+});
+
+router.post("/api/v1/blogs", (req, res, next) => {
+  if (!req.files) {
+    return res.status(400).send("No files were uploaded.");
+  }
+
+  let message = "";
+  let title = req.body.title;
+  let content = req.body.content;
+  let image_url = req.body.image_url;
+  let created_at = req.body.created_at;
+  let updated_at = req.body.updated_at;
+  let uploadedFile = req.files.image;
+  let image_name = uploadedFile.name;
+  let fileExtension = uploadedFile.mimetype.split("/")[1];
+  image_name = title + "." + fileExtension;
+
+  pg.connect(connectionString, (err, client, done) => {
+    if (err) {
+      done();
+      console.log(err);
+      return res.status(500).json({ success: false, data: err });
+    }
+    // SQL Query > Insert data
+    let titleQuery = "SELECT * FROM blogs WHERE title = '" + title + "'";
+
+    client.query(titleQuery, (err, result) => {
+      if (err) {
+        console.log("err", err);
+
+        return res.status(500).send(err);
+      }
+      if (result.length > 0) {
+        message = "Title already exists";
+        return res
+          .status(400)
+          .send({ message: "User with that EMAIL already exist" });
+      } else {
+        // check the filetype before uploading it
+        if (
+          uploadedFile.mimetype === "image/png" ||
+          uploadedFile.mimetype === "image/jpeg" ||
+          uploadedFile.mimetype === "image/gif"
+        ) {
+          // upload the file to the /public/assets/img directory
+          uploadedFile.mv(`public/assets/img/${image_name}`, err => {
+            if (err) {
+              console.log("err", err);
+
+              return res.status(500).send(err);
+            }
+            // send the blog's details to the database;
+            let query =
+              "INSERT INTO blogs (title, content, image_url, created_at, updated_at) values('" +
+              title +
+              "', '" +
+              content +
+              "','" +
+              image_name +
+              "','" +
+              created_at +
+              "','" +
+              updated_at +
+              "')";
+            client.query(query, (err, result) => {
+              if (err) {
+                return res.status(500).send(err);
+              }
+              res.redirect("/");
+            });
+          });
+        } else {
+          return res.status(400).send({
+            message:
+              "Invalid File format. Only 'gif', 'jpeg' and 'png' images are allowed."
+          });
+        }
+      }
     });
   });
 });

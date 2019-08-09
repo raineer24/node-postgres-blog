@@ -1,4 +1,5 @@
 const express = require("express");
+const fileUpload = require("express-fileupload");
 const path = require("path");
 const logger = require("morgan");
 const cookieParser = require("cookie-parser");
@@ -14,7 +15,9 @@ app.use(logger("dev"));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, "client")));
+// app.use(express.static(path.join(__dirname, "client")));
+app.use(express.static(path.join(__dirname, "public"))); // configure express to use public folder
+app.use(fileUpload()); // configure fileupload
 
 app.use("/", routes);
 // app.use('/users', users);
