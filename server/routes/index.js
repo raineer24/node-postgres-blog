@@ -57,7 +57,7 @@ router.post("/api/v1/blogs", (req, res, next) => {
   let message = "";
   let title = req.body.title;
   let content = req.body.content;
-  let image_url = req.body.image_url;
+  //let image_url = req.body.image_url;
   let created_at = req.body.created_at;
   let updated_at = req.body.updated_at;
   let uploadedFile = req.files.image;
@@ -76,7 +76,7 @@ router.post("/api/v1/blogs", (req, res, next) => {
 
     client.query(titleQuery, (err, result) => {
       if (err) {
-        console.log("err", err);
+        console.log("err");
 
         return res.status(500).send(err);
       }
@@ -100,6 +100,14 @@ router.post("/api/v1/blogs", (req, res, next) => {
               return res.status(500).send(err);
             }
             // send the blog's details to the database;
+
+            var queryString =
+              "INSERT INTO blogs (title, content, image_url, created_at, updated_at) VALUES (" +
+              "'" +
+              [title, content, image_name, created_at, updated_at].join("','") +
+              "'" +
+              ") RETURNING *";
+
             let query =
               "INSERT INTO blogs (title, content, image_url, created_at, updated_at) values('" +
               title +
@@ -112,11 +120,13 @@ router.post("/api/v1/blogs", (req, res, next) => {
               "','" +
               updated_at +
               "')";
-            client.query(query, (err, result) => {
+            client.query(queryString, (err, result) => {
               if (err) {
                 return res.status(500).send(err);
               }
-              res.redirect("/");
+              console.log(result);
+              return res.json(result);
+              //res.status(200).send({ result });
             });
           });
         } else {
