@@ -124,9 +124,9 @@ router.post("/api/v1/blogs", (req, res, next) => {
               if (err) {
                 return res.status(500).send(err);
               }
-              console.log(result);
-              return res.json(result);
-              //res.status(200).send({ result });
+              res
+                .status(200)
+                .send({ status: "Successful", result: result.rows[0] });
             });
           });
         } else {
