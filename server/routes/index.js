@@ -49,7 +49,7 @@ router.get("/api/v1/blogs", (req, res, next) => {
   });
 });
 
-router.post("/api/v1/blogs", (req, res, next) => {
+router.post("/api/v1/blogs1", (req, res, next) => {
   if (!req.files) {
     return res.status(400).send("No files were uploaded.");
   }
@@ -80,7 +80,9 @@ router.post("/api/v1/blogs", (req, res, next) => {
 
         return res.status(500).send(err);
       }
-      if (result.length > 0) {
+      if (result.rows > "1") {
+        console.log("length", result.length);
+
         message = "Title already exists";
         return res
           .status(400)
@@ -108,9 +110,7 @@ router.post("/api/v1/blogs", (req, res, next) => {
               "'" +
               ") RETURNING *";
 
-            let query =
-              "INSERT INTO blogs (title, content, image_url, created_at, updated_at) values('" +
-              title +
+            title +
               "', '" +
               content +
               "','" +
@@ -124,6 +124,8 @@ router.post("/api/v1/blogs", (req, res, next) => {
               if (err) {
                 return res.status(500).send(err);
               }
+              console.log("result.length", result.length);
+
               res
                 .status(200)
                 .send({ status: "Successful", result: result.rows[0] });
@@ -139,4 +141,6 @@ router.post("/api/v1/blogs", (req, res, next) => {
     });
   });
 });
+
+router.post("/");
 module.exports = router;
