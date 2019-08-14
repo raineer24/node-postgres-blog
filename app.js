@@ -1,5 +1,5 @@
 const express = require("express");
-const fileUpload = require("express-fileupload");
+//const fileUpload = require("express-fileupload");
 const path = require("path");
 const logger = require("morgan");
 const cookieParser = require("cookie-parser");
@@ -11,13 +11,21 @@ const app = express();
 
 const port = process.env.PORT || 5000;
 
-app.use(logger("dev"));
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
+const morgan = require("morgan");
+
+app.use(morgan("combined"));
+app.use(bodyParser.json({ limit: "50mb" }));
+app.use(
+  bodyParser.urlencoded({
+    limit: "50mb",
+    extended: true,
+    parameterLimit: 1000000
+  })
+);
 app.use(cookieParser());
 // app.use(express.static(path.join(__dirname, "client")));
-app.use(express.static(path.join(__dirname, "public"))); // configure express to use public folder
-app.use(fileUpload()); // configure fileupload
+//app.use(express.static(path.join(__dirname, "public"))); // configure express to use public folder
+//app.use(fileUpload()); // configure fileupload
 
 app.use("/", routes);
 // app.use('/users', users);

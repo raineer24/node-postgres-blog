@@ -1,10 +1,37 @@
 const express = require("express");
-const fileUpload = require("express-fileupload");
 const router = express.Router();
 const pg = require("pg");
-const path = require("path");
+const multer = require("multer");
 const connectionString =
   process.env.DATABASE_URL || "postgres://localhost:5432/apiblog";
+const storage = multer.diskStorage({
+  filename: function(req, file, callback) {
+    callback(null, Date.now() + file.originalname);
+  }
+});
+
+const imageFilter = function(req, file, cb) {
+  //accept image files only
+  if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/i)) {
+    return cb(new Error("Only image files are allowed!"), false);
+  }
+  cb(null, true);
+};
+
+const upload = multer({ storage: storage, fileFilter: imageFilter });
+
+const cloudinary = require("cloudinary");
+
+cloudinary.config({
+  cloud_name: "dwsbpkgvr",
+  api_key: "246382268158277",
+  api_secret: "OEJwFk8xMOuNID7Z7L5MNDJ9nY8"
+});
+
+// Add route code Here
+router.get("/", (req, res) => {
+  res.send("Api Postgres");
+});
 
 const config = {
   user: "ner", //this is the db user credential
@@ -15,11 +42,6 @@ const config = {
   idleTimeoutMillis: 30000
 };
 const pool = new pg.Pool(config);
-
-// Add route code Here
-router.get("/", (req, res) => {
-  res.send("Api Postgres");
-});
 
 router.get("/api/v1/blogs", (req, res, next) => {
   const results = [];
@@ -50,6 +72,8 @@ router.get("/api/v1/blogs", (req, res, next) => {
 });
 
 router.post("/api/v1/blogs1", (req, res, next) => {
+  console.log(req.file);
+
   if (!req.files) {
     return res.status(400).send("No files were uploaded.");
   }
@@ -64,6 +88,8 @@ router.post("/api/v1/blogs1", (req, res, next) => {
   let image_name = uploadedFile.name;
   let fileExtension = uploadedFile.mimetype.split("/")[1];
   image_name = title + "." + fileExtension;
+
+  console.log("title", title);
 
   pg.connect(connectionString, (err, client, done) => {
     if (err) {
@@ -142,5 +168,42 @@ router.post("/api/v1/blogs1", (req, res, next) => {
   });
 });
 
-router.post("/");
+router.post("/api/v1/blogsx", upload.single("image"), (req, res) => {
+  if (!req.file) {
+    return res.status(400).send("No files were uploaded.");
+  }
+  cloudinary.uploader.upload(req.file.path, result => {
+    console.log(req.file);
+
+    res.json(result);
+  });
+
+  pg.connect(connectionString, (err, client, done) => {
+    cloudinary.uploader.upload(req.file.path, result => {
+      var queryString =
+        "INSERT INTO blogs (title, content, image_url, created_at, updated_at) VALUES (" +
+        "'" +
+        [title, content, image_name, created_at, updated_at].join("','") +
+        "'" +
+        ") RETURNING *";
+
+      client.query(queryString, (err, result) => {
+        if (err) {
+          return res.status(500).send(err);
+        }
+        console.log("result.length", result.length);
+
+        res.status(200).send({ status: "Successful", result: result.rows[0] });
+      });
+    });
+  });
+});
+
+router.post("/api/v1/blogs", upload.single("image"), (req, res) => {
+  console.log("req.body", req.file);
+  cloudinary.uploader.upload(req.file.path, result => {
+    pg.connect(connectionString, (err, client, done) => {});
+  });
+});
+
 module.exports = router;
