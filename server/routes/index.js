@@ -211,11 +211,9 @@ router.post("/api/v1/blogs", upload.single("image"), (req, res) => {
 
     pg.connect(connectionString, (err, client, done) => {
       var queryString =
-        "INSERT INTO blogs (title, content, image_url, created_at, updated_at) VALUES (" +
+        "INSERT INTO blogs (title, content, image_url) VALUES (" +
         "'" +
-        [title, content, results.secure_url, created_at, updated_at].join(
-          "','"
-        ) +
+        [title, content, results.secure_url].join("','") +
         "'" +
         ") RETURNING *";
 
