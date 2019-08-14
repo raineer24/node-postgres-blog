@@ -201,8 +201,33 @@ router.post("/api/v1/blogsx", upload.single("image"), (req, res) => {
 
 router.post("/api/v1/blogs", upload.single("image"), (req, res) => {
   console.log("req.body", req.file);
-  cloudinary.uploader.upload(req.file.path, result => {
-    pg.connect(connectionString, (err, client, done) => {});
+  let title = req.body.title;
+  let content = req.body.content;
+  //let image_url = req.body.image_url;
+  let created_at = req.body.created_at;
+  let updated_at = req.body.updated_at;
+  cloudinary.uploader.upload(req.file.path, results => {
+    //console.log(resu);
+
+    pg.connect(connectionString, (err, client, done) => {
+      var queryString =
+        "INSERT INTO blogs (title, content, image_url, created_at, updated_at) VALUES (" +
+        "'" +
+        [title, content, results.secure_url, created_at, updated_at].join(
+          "','"
+        ) +
+        "'" +
+        ") RETURNING *";
+
+      client.query(queryString, (err, result) => {
+        if (err) {
+          return res.status(500).send(err);
+        }
+        console.log("result.length", result.length);
+
+        res.status(200).send({ status: "Successful", result: result.rows[0] });
+      });
+    });
   });
 });
 
