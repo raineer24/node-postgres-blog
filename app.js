@@ -7,6 +7,8 @@ const bodyParser = require("body-parser");
 
 const routes = require("./server/routes/index");
 
+const blogRoute = require("./routes/blog");
+
 const app = express();
 
 const port = process.env.PORT || 5000;
@@ -28,6 +30,7 @@ app.use(cookieParser());
 //app.use(fileUpload()); // configure fileupload
 
 app.use("/", routes);
+app.use("/api/v2/blog", blogRoute);
 // app.use('/users', users);
 
 // catch 404 and forward to error handler
