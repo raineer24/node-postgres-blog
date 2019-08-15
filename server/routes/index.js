@@ -200,7 +200,6 @@ router.post("/api/v1/blogsx", upload.single("image"), (req, res) => {
 });
 
 router.post("/api/v1/blogs", upload.single("image"), (req, res) => {
-  console.log("req.body", req.file);
   let title = req.body.title;
   let content = req.body.content;
   //let image_url = req.body.image_url;
@@ -221,11 +220,30 @@ router.post("/api/v1/blogs", upload.single("image"), (req, res) => {
         if (err) {
           return res.status(500).send(err);
         }
-        console.log("result.length", result.length);
 
         res.status(200).send({ status: "Successful", result: result.rows[0] });
       });
     });
+  });
+});
+
+router.put("/api/v1/blogs/:id", (req, res, next) => {
+  const id = parseInt(req.params.id);
+  const { title, content } = req.body;
+
+  pg.connect(connectionString, (err, client, done) => {
+    client.query(
+      "UPDATE blogs SET title =$1, content = $2 WHERE id =$3",
+      [title, content, id],
+      (error, result) => {
+        if (err) {
+          console.log(error);
+
+          return res.status(500).send(error);
+        }
+        res.status(200).send(`User modified with ID: ${id}`);
+      }
+    );
   });
 });
 
