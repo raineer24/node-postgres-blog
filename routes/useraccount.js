@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const pg = require("pg");
 const multer = require("multer");
+const bcrypt = require("bcrypt");
 const connectionString =
   process.env.DATABASE_URL || "postgres://localhost:5432/apiblog";
 const storage = multer.diskStorage({
@@ -194,6 +195,76 @@ router.post("/", upload.single("image"), (req, res) => {
       });
     });
   });
+});
+
+//user signup
+router.post("/signup", (req, res) => {
+  const { username, email, password } = req.body;
+  const saltRounds = 12;
+
+  const hashPassword = password => {
+    return new Promise((resolve, reject) =>
+      bcrypt.hash(password, 10, (err, hash) => {
+        err ? reject(err) : resolve(hash);
+      })
+    );
+  };
+
+  const createUser = user => {
+    pg.connect(connectionString, (err, client, done) => {
+      // client.query(
+      //   "INSERT INTO useraccount (username, email, password) VALUES (" +
+      //     "'" +
+      //     [username, email, password].join("','") +
+      //     "'" +
+      //     ") RETURNING *",
+      //   (error, result) => {
+      //     if (err) {
+      //       console.log(error);
+
+      //       return res.status(500).send(error);
+      //     }
+      //     res.status(200).send(`User modified with ID: ${id}`);
+      //   }
+      // );
+      return client
+        .query(
+          "INSERT INTO useraccount (username, email, password) VALUES (" +
+            "'" +
+            [username, email, password].join("','") +
+            "'" +
+            ") RETURNING *"
+        )
+        .then(data => {
+          console.log(data.rows[0]);
+        });
+    });
+  };
+
+  // see if a user with the given email exists.
+
+  bcrypt.hash(password, saltRounds).then(hash => {
+    return createUser(username, email, hash)
+      .then(newUser => {
+        res.json(newUser);
+      })
+      .catch(err => {
+        console.log(err);
+        res.status(500).json({
+          error: err
+        });
+      });
+  });
+
+  // bcrypt.hash(req.body.password, 10, (err, hash) => {
+  //   if (err) {
+  //     return res.status(500).json({
+  //       error: err
+  //     });
+  //   } else {
+  //     console.log("press play to continue");
+  //   }
+  // });
 });
 
 router.put("/:id", (req, res, next) => {
