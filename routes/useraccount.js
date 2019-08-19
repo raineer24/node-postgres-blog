@@ -201,25 +201,53 @@ router.post("/", upload.single("image"), (req, res) => {
 router.post("/signup", (req, res) => {
   const { username, email, password } = req.body;
   const saltRounds = 12;
-  bcrypt.hash(req.body.password, 10, (err, hash) => {
-    if (err) {
-      return res.status(500).json({
-        error: err
-      });
-    } else {
-      pg.connect(connectionString, (err, client, done) => {
-        const query =
-          "INSERT INTO useraccount (username, email, password) VALUES (" +
-          "'" +
-          [username, email, hash].join("','") +
-          "'" +
-          ") RETURNING *";
-        client.query(query, (err, result) => {
-          //console.log(res);
-          res.status(201).json({ result });
+  pg.connect(connectionString, (err, client, done) => {
+    // SQL Query > Insert data
+    let titleQuery = "SELECT * FROM useraccount WHERE email = '" + email + "'";
+    client.query(titleQuery, (err, result) => {
+      if (result.rows > "1") {
+        console.log("length", result.length);
+        message = "Title already exists";
+        return res
+          .status(400)
+          .send({ message: "User with that EMAIL already exist" });
+      } else {
+        bcrypt.hash(req.body.password, 10, (err, hash) => {
+          if (err) {
+            return res.status(500).json({
+              error: err
+            });
+          } else {
+            const query =
+              "INSERT INTO useraccount (username, email, password) VALUES (" +
+              "'" +
+              [username, email, hash].join("','") +
+              "'" +
+              ") RETURNING *";
+            client.query(query, (err, result) => {
+              //console.log(res);
+              res.status(201).json({ result });
+            });
+          }
         });
-      });
-    }
+      }
+      console.log("result", result);
+    });
+  });
+});
+
+//user login
+router.post("/login", (req, res) => {
+  const { username, email, password } = req.body;
+  let titleQuery = "SELECT * FROM useraccount WHERE email = '" + email + "'";
+  pg.connect(connectionString, (err, client, done) => {
+    client.query(titleQuery, (err, result) => {
+      if (result.rows < "1") {
+        return res.status(401).json({
+          message: "Auth failed"
+        });
+      }
+    });
   });
 });
 
