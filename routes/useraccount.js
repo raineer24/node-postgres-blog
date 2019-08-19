@@ -246,7 +246,7 @@ router.post("/login", (req, res) => {
 
       if (result.rows < "1") {
         return res.status(401).json({
-          message: "Auth failed"
+          message: "Auth failedss"
         });
       }
       console.log(result.rows[0].password);
@@ -255,11 +255,13 @@ router.post("/login", (req, res) => {
         .compare(req.body.password, result.rows[0].password)
         .then(result => {
           if (result) {
-            console.log("authentication successful");
-            // do stuff
+            return res.status(201).json({
+              message: "Auth Successful"
+            });
           } else {
-            console.log("authentication failed. Password doesn't match");
-            // do other stuff
+            return res.status(401).json({
+              message: "Auth failed"
+            });
           }
         })
         .catch(err => console.log(err));
