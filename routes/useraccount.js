@@ -212,7 +212,7 @@ router.post("/signup", (req, res) => {
           .status(400)
           .send({ message: "User with that EMAIL already exist" });
       } else {
-        bcrypt.hash(req.body.password, 10, (err, hash) => {
+        bcrypt.hash(req.body.password, 12, (err, hash) => {
           if (err) {
             return res.status(500).json({
               error: err
@@ -242,11 +242,27 @@ router.post("/login", (req, res) => {
   let titleQuery = "SELECT * FROM useraccount WHERE email = '" + email + "'";
   pg.connect(connectionString, (err, client, done) => {
     client.query(titleQuery, (err, result) => {
+      // console.log("result.rows[0]", result.rows[0].password);
+
       if (result.rows < "1") {
         return res.status(401).json({
           message: "Auth failed"
         });
       }
+      console.log(result.rows[0].password);
+      console.log(req.body.password);
+      bcrypt
+        .compare(req.body.password, result.rows[0].password)
+        .then(result => {
+          if (result) {
+            console.log("authentication successful");
+            // do stuff
+          } else {
+            console.log("authentication failed. Password doesn't match");
+            // do other stuff
+          }
+        })
+        .catch(err => console.log(err));
     });
   });
 });
