@@ -5,6 +5,7 @@ const multer = require("multer");
 const bcrypt = require("bcrypt");
 const connectionString =
   process.env.DATABASE_URL || "postgres://localhost:5432/apiblog";
+require("dotenv").config();
 const storage = multer.diskStorage({
   filename: function(req, file, callback) {
     callback(null, Date.now() + file.originalname);
