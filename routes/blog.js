@@ -3,6 +3,7 @@ const router = express.Router();
 const pg = require("pg");
 const multer = require("multer");
 const checkAuth = require("../middleware/check-auth");
+const blogController = require("../controllers/blog");
 const connectionString =
   process.env.DATABASE_URL || "postgres://localhost:5432/apiblog";
 const storage = multer.diskStorage({
@@ -44,33 +45,7 @@ const config = {
 };
 const pool = new pg.Pool(config);
 
-router.get("/", (req, res, next) => {
-  const results = [];
-  // Get a Postgres client from the connection pool
-  pg.connect(connectionString, (err, client, done) => {
-    //console.log("err=", err);
-    const query = "SELECT * FROM blogs";
-    client.query(query, (error, result) => {
-      done();
-      if (error) {
-        res.status(500).json({ error });
-      }
-      if (result.rows < "1") {
-        res.status(404).send({
-          status: "Failed",
-          message: "No blog information found"
-        });
-      } else {
-        res.status(200).send({
-          status: "Successful",
-          message: "Blog information retrieved",
-          blogs: result.rows
-        });
-      }
-      //res.send({ result });
-    });
-  });
-});
+router.get("/", checkAuth, blogController.blogs_get_all);
 
 router.post("/", checkAuth, upload.single("image"), (req, res) => {
   let title = req.body.title;
