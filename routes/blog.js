@@ -72,7 +72,7 @@ router.get("/", (req, res, next) => {
   });
 });
 
-router.post("/", upload.single("image"), checkAuth, (req, res) => {
+router.post("/", checkAuth, upload.single("image"), (req, res) => {
   let title = req.body.title;
   let content = req.body.content;
   //let image_url = req.body.image_url;
