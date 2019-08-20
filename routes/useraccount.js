@@ -3,9 +3,10 @@ const router = express.Router();
 const pg = require("pg");
 const multer = require("multer");
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+require("dotenv").config();
 const connectionString =
   process.env.DATABASE_URL || "postgres://localhost:5432/apiblog";
-require("dotenv").config();
 const storage = multer.diskStorage({
   filename: function(req, file, callback) {
     callback(null, Date.now() + file.originalname);
@@ -247,17 +248,28 @@ router.post("/login", (req, res) => {
 
       if (result.rows < "1") {
         return res.status(401).json({
-          message: "Auth failedss"
+          message: "Auth failed"
         });
       }
       console.log(result.rows[0].password);
       console.log(req.body.password);
       bcrypt
         .compare(req.body.password, result.rows[0].password)
-        .then(result => {
-          if (result) {
-            return res.status(201).json({
-              message: "Auth Successful"
+        .then(results => {
+          if (results) {
+            const token = jwt.sign(
+              {
+                email: result.rows[0].password,
+                id: result.rows[0].id
+              },
+              process.env.SECRET_KEY,
+              {
+                expiresIn: "1h"
+              }
+            );
+            return res.status(200).json({
+              message: "Auth Successful",
+              token: token
             });
           } else {
             return res.status(401).json({
