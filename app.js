@@ -31,7 +31,7 @@ app.use(cookieParser());
 //app.use(express.static(path.join(__dirname, "public"))); // configure express to use public folder
 //app.use(fileUpload()); // configure fileupload
 
-app.use("/", routes);
+//app.use("/", routes);
 app.use("/api/v2/blog", blogRoute);
 app.use("/api/v2/useraccount", useraccountRoute);
 // app.use('/users', users);

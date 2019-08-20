@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const pg = require("pg");
 const multer = require("multer");
+const checkAuth = require("../middleware/check-auth");
 const connectionString =
   process.env.DATABASE_URL || "postgres://localhost:5432/apiblog";
 const storage = multer.diskStorage({
@@ -71,7 +72,7 @@ router.get("/", (req, res, next) => {
   });
 });
 
-router.post("/", upload.single("image"), (req, res) => {
+router.post("/", checkAuth, upload.single("image"), (req, res) => {
   let title = req.body.title;
   let content = req.body.content;
   //let image_url = req.body.image_url;
