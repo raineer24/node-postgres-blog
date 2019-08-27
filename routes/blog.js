@@ -45,7 +45,7 @@ const config = {
 };
 const pool = new pg.Pool(config);
 
-router.get("/", checkAuth, blogController.blogs_get_all);
+router.get("/", blogController.blogs_get_all);
 
 router.post("/", checkAuth, upload.single("image"), (req, res) => {
   let title = req.body.title;
