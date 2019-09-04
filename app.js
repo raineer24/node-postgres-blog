@@ -13,6 +13,8 @@ const useraccountRoute = require("./routes/useraccount");
 
 const app = express();
 
+const cors = require("cors");
+
 const port = process.env.PORT || 5000;
 
 const morgan = require("morgan");
@@ -33,21 +35,34 @@ app.use(cookieParser());
 
 //app.use("/", routes);
 
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header(
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type,Accept, Authorization"
-  );
-  if (req.method === "OPTIONS") {
-    res.header(
-      "Access-Control-Allow-Methods",
-      "PUT, POST, ,PATCH, DELETE, GET"
-    );
-    return res.status(200).json({});
-  }
-  next();
-});
+app.use(
+  cors({
+    origin: "*",
+    exposedHeaders: [
+      "Content-Range",
+      "X-Content-Range",
+      "Content-Disposition",
+      "Content-Error"
+    ],
+    credentials: true
+  })
+);
+
+// app.use((req, res, next) => {
+//   res.header("Access-Control-Allow-Origin", "*");
+//   res.header(
+//     "Access-Control-Allow-Headers",
+//     "Origin, X-Requested-With, Content-Type,Accept, Authorization"
+//   );
+//   if (req.method === "OPTIONS") {
+//     res.header(
+//       "Access-Control-Allow-Methods",
+//       "PUT, POST, ,PATCH, DELETE, GET"
+//     );
+//     return res.status(200).json({});
+//   }
+//   next();
+// });
 
 app.use("/api/v2/blog", blogRoute);
 app.use("/api/v2/useraccount", useraccountRoute);
