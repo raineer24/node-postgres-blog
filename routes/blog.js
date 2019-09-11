@@ -22,13 +22,13 @@ const imageFilter = function(req, file, cb) {
 
 const upload = multer({ storage: storage, fileFilter: imageFilter });
 
-const cloudinary = require("cloudinary");
+// const cloudinary = require("cloudinary");
 
-cloudinary.config({
-  cloud_name: "dwsbpkgvr",
-  api_key: "246382268158277",
-  api_secret: "OEJwFk8xMOuNID7Z7L5MNDJ9nY8"
-});
+// cloudinary.config({
+//   cloud_name: "dwsbpkgvr",
+//   api_key: "246382268158277",
+//   api_secret: "OEJwFk8xMOuNID7Z7L5MNDJ9nY8"
+// });
 
 // // Add route code Here
 // router.get("/", (req, res) => {
@@ -47,33 +47,12 @@ const pool = new pg.Pool(config);
 
 router.get("/", blogController.blogs_get_all);
 
-router.post("/", checkAuth, upload.single("image"), (req, res) => {
-  let title = req.body.title;
-  let content = req.body.content;
-  //let image_url = req.body.image_url;
-  let created_at = req.body.created_at;
-  let updated_at = req.body.updated_at;
-  cloudinary.uploader.upload(req.file.path, results => {
-    //console.log(resu);
-
-    pg.connect(connectionString, (err, client, done) => {
-      var queryString =
-        "INSERT INTO blogs (title, content, image_url) VALUES (" +
-        "'" +
-        [title, content, results.secure_url].join("','") +
-        "'" +
-        ") RETURNING *";
-
-      client.query(queryString, (err, result) => {
-        if (err) {
-          return res.status(500).send(err);
-        }
-
-        res.status(200).send({ status: "Successful", result: result.rows[0] });
-      });
-    });
-  });
-});
+router.post(
+  "/",
+  checkAuth,
+  upload.single("image"),
+  blogController.blogs_create_blog
+);
 
 router.put("/:id", (req, res, next) => {
   const id = parseInt(req.params.id);
