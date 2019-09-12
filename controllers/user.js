@@ -1,10 +1,8 @@
 const pg = require("pg");
-import helper from './helper';
+import helper from "./helper";
 const connectionString =
   process.env.DATABASE_URL || "postgres://localhost:5432/apiblog";
-
-
-
+const bcrypt = require("bcrypt");
 exports.users_get_all = (req, res, next) => {
   const results = [];
   // Get a Postgres client from the connection pool
@@ -38,7 +36,11 @@ exports.users_create_user = (req, res, next) => {
   const saltRounds = 12;
   pg.connect(connectionString, (err, client, done) => {
     // SQL Query > Insert data
-    if()
+    if (!helper.isValidEmail(req.body.email)) {
+      return res
+        .status(400)
+        .send({ message: "Please enter a valid email address" });
+    }
     let titleQuery = "SELECT * FROM useraccount WHERE email = '" + email + "'";
     client.query(titleQuery, (err, result) => {
       if (result.rows > "1") {

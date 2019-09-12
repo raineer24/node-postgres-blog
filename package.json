@@ -5,12 +5,13 @@
   "main": "index.js",
   "scripts": {
     "create": "node ./server/models/database createTables",
-    "dev": "nodemon app.js",
+    "dev": "nodemon --exec babel-node app.js",
     "start": "node app.js"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@babel/core": "^7.6.0",
     "bcrypt": "^3.0.6",
     "body-parser": "^1.19.0",
     "cloudinary": "^1.14.0",
@@ -25,6 +26,9 @@
     "pg": "^6.1.0"
   },
   "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-env": "^1.7.0",
+    "babel-watch": "^2.0.7",
     "nodemon": "^1.19.1"
   }
 }

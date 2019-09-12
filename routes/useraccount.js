@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const pg = require("pg");
 const multer = require("multer");
-const bcrypt = require("bcrypt");
+
 const jwt = require("jsonwebtoken");
 const userController = require("../controllers/user");
 require("dotenv").config();
