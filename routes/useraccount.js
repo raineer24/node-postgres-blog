@@ -4,6 +4,7 @@ const pg = require("pg");
 const multer = require("multer");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const userController = require("../controllers/user");
 require("dotenv").config();
 const connectionString =
   process.env.DATABASE_URL || "postgres://localhost:5432/apiblog";
@@ -46,33 +47,7 @@ const config = {
 };
 const pool = new pg.Pool(config);
 
-router.get("/", (req, res, next) => {
-  const results = [];
-  // Get a Postgres client from the connection pool
-  pg.connect(connectionString, (err, client, done) => {
-    //console.log("err=", err);
-    const query = "SELECT * FROM useraccount";
-    client.query(query, (error, result) => {
-      done();
-      if (error) {
-        res.status(500).json({ error });
-      }
-      if (result.rows < "1") {
-        res.status(404).send({
-          status: "Failed",
-          message: "No blog information found"
-        });
-      } else {
-        res.status(200).send({
-          status: "Successful",
-          message: "Blog information retrieved",
-          blogs: result.rows
-        });
-      }
-      //res.send({ result });
-    });
-  });
-});
+router.get("/", userController.users_get_all);
 
 router.post("/", (req, res, next) => {
   console.log(req.file);
@@ -200,43 +175,7 @@ router.post("/", upload.single("image"), (req, res) => {
 });
 
 //user signup
-router.post("/signup", (req, res) => {
-  const { username, email, password } = req.body;
-  const saltRounds = 12;
-  pg.connect(connectionString, (err, client, done) => {
-    // SQL Query > Insert data
-    let titleQuery = "SELECT * FROM useraccount WHERE email = '" + email + "'";
-    client.query(titleQuery, (err, result) => {
-      if (result.rows > "1") {
-        console.log("length", result.length);
-        message = "Title already exists";
-        return res
-          .status(400)
-          .send({ message: "User with that EMAIL already exist" });
-      } else {
-        bcrypt.hash(req.body.password, 12, (err, hash) => {
-          if (err) {
-            return res.status(500).json({
-              error: err
-            });
-          } else {
-            const query =
-              "INSERT INTO useraccount (username, email, password) VALUES (" +
-              "'" +
-              [username, email, hash].join("','") +
-              "'" +
-              ") RETURNING *";
-            client.query(query, (err, result) => {
-              //console.log(res);
-              res.status(201).json({ result });
-            });
-          }
-        });
-      }
-      console.log("result", result);
-    });
-  });
-});
+router.post("/signup", userController.users_create_user);
 
 //user login
 router.post("/login", (req, res) => {
@@ -297,6 +236,7 @@ router.put("/:id", (req, res, next) => {
 
           return res.status(500).send(error);
         }
+        git;
         res.status(200).send(`User modified with ID: ${id}`);
       }
     );
