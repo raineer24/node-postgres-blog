@@ -36,16 +36,15 @@ exports.users_create_user = (req, res, next) => {
   const saltRounds = 12;
   pg.connect(connectionString, (err, client, done) => {
     // SQL Query > Insert data
-    if (!helper.isValidEmail(req.body.email)) {
-      return res
-        .status(400)
-        .send({ message: "Please enter a valid email address" });
-    }
+
     let titleQuery = "SELECT * FROM useraccount WHERE email = '" + email + "'";
     client.query(titleQuery, (err, result) => {
+      if (!helper.isValidEmail(req.body.email)) {
+        return res
+          .status(400)
+          .send({ message: "Please enter a valid email address" });
+      }
       if (result.rows > "1") {
-        console.log("length", result.length);
-        message = "Title already exists";
         return res
           .status(400)
           .send({ message: "User with that EMAIL already exist" });
