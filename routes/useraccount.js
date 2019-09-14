@@ -178,49 +178,7 @@ router.post("/", upload.single("image"), (req, res) => {
 router.post("/signup", userController.users_create_user);
 
 //user login
-router.post("/login", (req, res) => {
-  const { username, email, password } = req.body;
-  let titleQuery = "SELECT * FROM useraccount WHERE email = '" + email + "'";
-  pg.connect(connectionString, (err, client, done) => {
-    client.query(titleQuery, (err, result) => {
-      // console.log("result.rows[0]", result.rows[0].password);
-
-      if (result.rows < "1") {
-        return res.status(401).json({
-          message: "Auth failed"
-        });
-      }
-      console.log(result.rows[0].password);
-      console.log(req.body.password);
-      bcrypt
-        .compare(req.body.password, result.rows[0].password)
-        .then(results => {
-          if (results) {
-            const token = jwt.sign(
-              {
-                email: result.rows[0].password,
-                id: result.rows[0].id
-              },
-              process.env.SECRET_KEY,
-              {
-                expiresIn: "1h"
-              }
-            );
-            return res.status(200).json({
-              message: "Auth Successful",
-              token: token,
-              results
-            });
-          } else {
-            return res.status(401).json({
-              message: "Auth failed"
-            });
-          }
-        })
-        .catch(err => console.log(err));
-    });
-  });
-});
+router.post("/login", userController.users_login_user);
 
 router.put("/:id", (req, res, next) => {
   const id = parseInt(req.params.id);
