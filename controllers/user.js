@@ -40,19 +40,12 @@ exports.users_get_all = (req, res, next) => {
 exports.users_create_user = (req, res, next) => {
   const { username, email, password } = req.body;
   const saltRounds = 12;
+  pg.connect(connectionString, (err, client, done) => {
+    // SQL Query > Insert data
 
-  if (validateEmail(req.body.email)) {
-    pg.connect(connectionString, (err, client, done) => {
-      // SQL Query > Insert data
-
-      let titleQuery =
-        "SELECT * FROM useraccount WHERE email = '" + email + "'";
-      client.query(titleQuery, (err, result) => {
-        // if (!helper.isValidEmail(req.body.email)) {
-        //   return res
-        //     .status(400)
-        //     .send({ message: "Please enter a valid email address" });
-        // }
+    let titleQuery = "SELECT * FROM useraccount WHERE email = '" + email + "'";
+    client.query(titleQuery, (err, result) => {
+      if (validateEmail(req.body.email)) {
         if (result.rows > "1") {
           return res
             .status(400)
@@ -78,13 +71,17 @@ exports.users_create_user = (req, res, next) => {
           });
         }
         console.log("result", result);
-      });
+      } else {
+        next(new Error("Invalid Email add"));
+      }
+
+      // if (!helper.isValidEmail(req.body.email)) {
+      //   return res
+      //     .status(400)
+      //     .send({ message: "Please enter a valid email address" });
+      // }
     });
-  } else {
-    return res.status(400).send({
-      message: "Invalid email adds"
-    });
-  }
+  });
 };
 
 exports.users_login_user = (req, res, next) => {
