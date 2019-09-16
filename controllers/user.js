@@ -3,7 +3,7 @@ const pg = require("pg");
 const connectionString =
   process.env.DATABASE_URL || "postgres://localhost:5432/apiblog";
 const bcrypt = require("bcrypt");
-
+const jwt = require("jsonwebtoken");
 function validateEmail(email) {
   var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
   return re.test(String(email).toLowerCase());
