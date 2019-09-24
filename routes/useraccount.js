@@ -14,6 +14,11 @@ const storage = multer.diskStorage({
   }
 });
 
+function validateEmail(email) {
+  var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+  return re.test(String(email).toLowerCase());
+}
+
 const imageFilter = function(req, file, cb) {
   //accept image files only
   if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/i)) {
@@ -170,6 +175,53 @@ router.post("/", upload.single("image"), (req, res) => {
 
         res.status(200).send({ status: "Successful", result: result.rows[0] });
       });
+    });
+  });
+});
+
+router.post("/signup1", (req, res) => {
+  const { username, email, password } = req.body;
+  const saltRounds = 12;
+  pg.connect(connectionString, (err, client, done) => {
+    // SQL Query > Insert data
+
+    let titleQuery = "SELECT * FROM users WHERE email = '" + email + "'";
+    client.query(titleQuery, (err, result) => {
+      if (validateEmail(req.body.email)) {
+        if (result.rows > "1") {
+          return res
+            .status(400)
+            .send({ message: "User with that EMAIL already exist" });
+        } else {
+          bcrypt.hash(req.body.password, 12, (err, hash) => {
+            if (err) {
+              return res.status(500).json({
+                error: err
+              });
+            } else {
+              const query =
+                "INSERT INTO users (username, email, password) VALUES (" +
+                "'" +
+                [username, email, hash].join("','") +
+                "'" +
+                ") RETURNING *";
+              client.query(query, (err, result) => {
+                console.log("result: ", result);
+                res.status(201).json({ result });
+              });
+            }
+          });
+        }
+        console.log("result", result);
+      } else {
+        next(new Error("Invalid Email add"));
+      }
+
+      // if (!helper.isValidEmail(req.body.email)) {
+      //   return res
+      //     .status(400)
+      //     .send({ message: "Please enter a valid email address" });
+      // }
     });
   });
 });

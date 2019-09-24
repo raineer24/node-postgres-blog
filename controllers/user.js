@@ -14,7 +14,7 @@ exports.users_get_all = (req, res, next) => {
   // Get a Postgres client from the connection pool
   pg.connect(connectionString, (err, client, done) => {
     //console.log("err=", err);
-    const query = "SELECT * FROM useraccount";
+    const query = "SELECT * FROM users";
     client.query(query, (error, result) => {
       done();
       if (error) {
@@ -38,12 +38,12 @@ exports.users_get_all = (req, res, next) => {
 };
 
 exports.users_create_user = (req, res, next) => {
-  const { username, email, password } = req.body;
+  const { username, email, first_name, image_url, password } = req.body;
   const saltRounds = 12;
   pg.connect(connectionString, (err, client, done) => {
     // SQL Query > Insert data
 
-    let titleQuery = "SELECT * FROM useraccount WHERE email = '" + email + "'";
+    let titleQuery = "SELECT * FROM users WHERE email = '" + email + "'";
     client.query(titleQuery, (err, result) => {
       if (validateEmail(req.body.email)) {
         if (result.rows > "1") {
@@ -58,9 +58,9 @@ exports.users_create_user = (req, res, next) => {
               });
             } else {
               const query =
-                "INSERT INTO useraccount (username, email, password) VALUES (" +
+                "INSERT INTO users (username, first_name, image_url, password, email) VALUES (" +
                 "'" +
-                [username, email, hash].join("','") +
+                [username, first_name, image_url, hash, email].join("','") +
                 "'" +
                 ") RETURNING *";
               client.query(query, (err, result) => {
@@ -91,6 +91,10 @@ exports.users_login_user = (req, res, next) => {
     client.query(titleQuery, (err, result) => {
       // console.log("result.rows[0]", result.rows[0].password);
 
+      // let filteredUsers = result.rows(res => {
+      //   return res.
+      // })
+
       if (result.rows < "1") {
         return res.status(401).json({
           message: "Auth failedss"
@@ -119,7 +123,7 @@ exports.users_login_user = (req, res, next) => {
             });
           } else {
             return res.status(401).json({
-              message: "Auth failedxx"
+              message: "Incorrect password"
             });
           }
         })
