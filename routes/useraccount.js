@@ -3,7 +3,8 @@ const router = express.Router();
 const pg = require("pg");
 const multer = require("multer");
 const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
+
+const userController = require("../controllers/user");
 require("dotenv").config();
 const connectionString =
   process.env.DATABASE_URL || "postgres://localhost:5432/apiblog";
@@ -12,6 +13,11 @@ const storage = multer.diskStorage({
     callback(null, Date.now() + file.originalname);
   }
 });
+
+function validateEmail(email) {
+  var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+  return re.test(String(email).toLowerCase());
+}
 
 const imageFilter = function(req, file, cb) {
   //accept image files only
@@ -46,33 +52,7 @@ const config = {
 };
 const pool = new pg.Pool(config);
 
-router.get("/", (req, res, next) => {
-  const results = [];
-  // Get a Postgres client from the connection pool
-  pg.connect(connectionString, (err, client, done) => {
-    //console.log("err=", err);
-    const query = "SELECT * FROM useraccount";
-    client.query(query, (error, result) => {
-      done();
-      if (error) {
-        res.status(500).json({ error });
-      }
-      if (result.rows < "1") {
-        res.status(404).send({
-          status: "Failed",
-          message: "No blog information found"
-        });
-      } else {
-        res.status(200).send({
-          status: "Successful",
-          message: "Blog information retrieved",
-          blogs: result.rows
-        });
-      }
-      //res.send({ result });
-    });
-  });
-});
+router.get("/", userController.users_get_all);
 
 router.post("/", (req, res, next) => {
   console.log(req.file);
@@ -199,89 +179,58 @@ router.post("/", upload.single("image"), (req, res) => {
   });
 });
 
-//user signup
-router.post("/signup", (req, res) => {
+router.post("/signup1", (req, res) => {
   const { username, email, password } = req.body;
   const saltRounds = 12;
   pg.connect(connectionString, (err, client, done) => {
     // SQL Query > Insert data
-    let titleQuery = "SELECT * FROM useraccount WHERE email = '" + email + "'";
+
+    let titleQuery = "SELECT * FROM users WHERE email = '" + email + "'";
     client.query(titleQuery, (err, result) => {
-      if (result.rows > "1") {
-        console.log("length", result.length);
-        message = "Title already exists";
-        return res
-          .status(400)
-          .send({ message: "User with that EMAIL already exist" });
+      if (validateEmail(req.body.email)) {
+        if (result.rows > "1") {
+          return res
+            .status(400)
+            .send({ message: "User with that EMAIL already exist" });
+        } else {
+          bcrypt.hash(req.body.password, 12, (err, hash) => {
+            if (err) {
+              return res.status(500).json({
+                error: err
+              });
+            } else {
+              const query =
+                "INSERT INTO users (username, email, password) VALUES (" +
+                "'" +
+                [username, email, hash].join("','") +
+                "'" +
+                ") RETURNING *";
+              client.query(query, (err, result) => {
+                console.log("result: ", result);
+                res.status(201).json({ result });
+              });
+            }
+          });
+        }
+        console.log("result", result);
       } else {
-        bcrypt.hash(req.body.password, 12, (err, hash) => {
-          if (err) {
-            return res.status(500).json({
-              error: err
-            });
-          } else {
-            const query =
-              "INSERT INTO useraccount (username, email, password) VALUES (" +
-              "'" +
-              [username, email, hash].join("','") +
-              "'" +
-              ") RETURNING *";
-            client.query(query, (err, result) => {
-              //console.log(res);
-              res.status(201).json({ result });
-            });
-          }
-        });
+        next(new Error("Invalid Email add"));
       }
-      console.log("result", result);
+
+      // if (!helper.isValidEmail(req.body.email)) {
+      //   return res
+      //     .status(400)
+      //     .send({ message: "Please enter a valid email address" });
+      // }
     });
   });
 });
+
+//user signup
+router.post("/signup", userController.users_create_user);
 
 //user login
-router.post("/login", (req, res) => {
-  const { username, email, password } = req.body;
-  let titleQuery = "SELECT * FROM useraccount WHERE email = '" + email + "'";
-  pg.connect(connectionString, (err, client, done) => {
-    client.query(titleQuery, (err, result) => {
-      // console.log("result.rows[0]", result.rows[0].password);
-
-      if (result.rows < "1") {
-        return res.status(401).json({
-          message: "Auth failed"
-        });
-      }
-      console.log(result.rows[0].password);
-      console.log(req.body.password);
-      bcrypt
-        .compare(req.body.password, result.rows[0].password)
-        .then(results => {
-          if (results) {
-            const token = jwt.sign(
-              {
-                email: result.rows[0].password,
-                id: result.rows[0].id
-              },
-              process.env.SECRET_KEY,
-              {
-                expiresIn: "1h"
-              }
-            );
-            return res.status(200).json({
-              message: "Auth Successful",
-              token: token,
-              results
-            });
-          } else {
-            return res.status(401).json({
-              message: "Auth failed"
-            });
-          }
-        })
-        .catch(err => console.log(err));
-    });
-  });
-});
+router.post("/login", userController.users_login_user);
 
 router.put("/:id", (req, res, next) => {
   const id = parseInt(req.params.id);
@@ -297,6 +246,7 @@ router.put("/:id", (req, res, next) => {
 
           return res.status(500).send(error);
         }
+        git;
         res.status(200).send(`User modified with ID: ${id}`);
       }
     );
